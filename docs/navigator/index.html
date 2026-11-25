@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="author" content="Prof. Dr. Ignacio Alvarez"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UXD AI Toolkit Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;600&display=swap">
+<style>
+/* Look: THI navy header band with a lime rule, square corners, underline tabs, sans throughout. Layout: a sticky "my setup" bar (two tool pickers) drives every prompt and install step on the page; below it one reading column with five views */
+:root{
+  --paper:#f0f1f3; --surface:#ffffff; --ink:#1d2430; --muted:#555f6d; --line:#cfd4da;
+  --band:#102a63; --band-ink:#ffffff; --band-muted:#cdd6ec; --lime:#96be00;
+  --accent:#102a63; --accent-soft:#e3e9f6; --go:#00765a; --go-soft:#dcf2ea;
+  --you:#566f00; --you-soft:#eef4d4; --chip:#e9ebee;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"Source Code Pro",Consolas,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1418; --surface:#171e24; --ink:#e6ebee; --muted:#9aa7b2; --line:#2a343d;
+  --band:#0c1f4b; --band-ink:#ffffff; --band-muted:#b9c5e2; --lime:#a9d400;
+  --accent:#a3b9ff; --accent-soft:#1c2a4d; --go:#56d3a8; --go-soft:#12352b;
+  --you:#c5e052; --you-soft:#2b3413; --chip:#212a32; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1418; --surface:#171e24; --ink:#e6ebee; --muted:#9aa7b2; --line:#2a343d;
+  --band:#0c1f4b; --band-ink:#ffffff; --band-muted:#b9c5e2; --lime:#a9d400;
+  --accent:#a3b9ff; --accent-soft:#1c2a4d; --go:#56d3a8; --go-soft:#12352b;
+  --you:#c5e052; --you-soft:#2b3413; --chip:#212a32; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:150px}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);margin:0}
+.wrap{max-width:1060px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:24px 22px;background:var(--band);color:var(--band-ink);border-bottom:5px solid var(--lime)}
+header.top .lede{color:var(--band-muted)}
+header.top .kicker{font:600 15px/1.3 var(--body);color:var(--band-muted)}
+header.top .ver{font-size:13.5px;color:var(--band-muted);margin-top:10px}
+.eyebrow{font:700 14px/1.3 var(--body);color:var(--go)}
+h1{font:700 clamp(30px,4.6vw,44px)/1.05 var(--display);margin:4px 0 10px;text-wrap:balance}
+h2{font:700 25px/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+h3{font:700 16px/1.3 var(--body);margin:0}
+p{margin:0}
+.lede{color:var(--muted);max-width:66ch}
+.muted{color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:13px}
+code{background:var(--chip);padding:1px 5px;border-radius:2px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+/* sticky setup + tabs */
+.bar{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.setup{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-block:10px 6px}
+.setup .lbl{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+.setup label{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;min-width:0}
+select,input[type=text],input[type=search]{padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:var(--surface);color:var(--ink);font:inherit;max-width:100%;min-width:0}
+.setup select{border:2px solid var(--accent);font-weight:700;color:var(--accent)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;padding-top:2px}
+nav.tabs a{flex:none;padding:9px 14px 8px;border-bottom:3px solid transparent;color:var(--muted);text-decoration:none;font-weight:600;font-size:15.5px}
+nav.tabs a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs a:hover:not([aria-current]){color:var(--ink);border-bottom-color:var(--line)}
+main{padding-block:22px 64px}
+section.view{display:grid;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px 20px;min-width:0}
+/* process rail */
+.rail{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:16px}
+.station{appearance:none;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0 8px 0 0;min-width:0}
+.station .dot{display:flex;align-items:center}
+.station .num{width:34px;height:34px;border-radius:3px;display:grid;place-items:center;font:700 17px var(--display);background:var(--surface);border:2px solid var(--line);color:var(--muted);flex:none}
+.station .line{height:2px;background:var(--line);flex:1}
+.station:last-child .line{visibility:hidden}
+.station .nm{display:block;margin-top:8px;font:700 18px/1.2 var(--display)}
+.station .wh{display:block;font-size:13.5px;line-height:1.35;color:var(--muted);margin-top:2px}
+.station[aria-pressed="true"] .num{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.station:hover .num{border-color:var(--accent)}
+@media (max-width:780px){.rail{grid-template-columns:1fr;gap:10px}.station{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}.station .line{display:none}.station .nm{margin-top:0}}
+.lost{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
+.phase-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:780px){.phase-head{grid-template-columns:1fr}}
+.you{border-left:3px solid var(--you);background:var(--you-soft);padding:10px 14px;border-radius:0;font-size:14px}
+.you b{display:block;font:700 12.5px/1.3 var(--body);color:var(--you);margin-bottom:2px}
+.cards{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:3px;padding:14px 16px;display:grid;gap:10px;min-width:0}
+.card-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
+.sk-id{font:700 21px/1.15 var(--display);color:var(--accent);overflow-wrap:anywhere}
+.io{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 16px;margin:0;font-size:13.5px}
+.io dt{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+.io dd{margin:0}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font:600 12px var(--body);padding:2px 7px;border-radius:2px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.tag.ph{background:var(--accent-soft);color:var(--accent)}
+.tag.proj{background:var(--go-soft);color:var(--go)}
+.prompt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;background:var(--paper);border:0;border-left:4px solid var(--go);border-radius:0;padding:10px 12px}
+.prompt p{font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
+.btn{appearance:none;border:1px solid var(--muted);background:var(--surface);color:var(--ink);border-radius:3px;padding:6px 12px;font:600 14px var(--body);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--go);border-color:var(--go);color:var(--surface)}
+.btn.primary:hover{color:var(--surface);filter:brightness(1.12)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{appearance:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:3px;padding:3px 8px;font:12.5px var(--mono);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.arrow{color:var(--muted);font-family:var(--mono)}
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+@media (max-width:860px){.builder{grid-template-columns:1fr}}
+.form{display:grid;gap:12px}
+.field{display:grid;gap:4px}
+.field label{font-size:13px;font-weight:600}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.out{display:grid;gap:14px}
+pre.box{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:13.5px/1.6 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:14px}
+.steps{display:grid;gap:10px;counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;counter-increment:s;font-size:14px}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:3px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 14px var(--display)}
+.steps li>div{min-width:0}
+.note{border-left:3px solid var(--go);background:var(--go-soft);padding:10px 14px;border-radius:0;font-size:14px}
+/* install */
+.toggle{display:flex;gap:4px;flex-wrap:wrap}
+.toggle button{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:3px;padding:5px 12px;font:13px var(--body);cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tree{font:12.5px/1.6 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:12px;margin:8px 0 0;overflow-x:auto;white-space:pre}
+.cmd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;margin-top:8px}
+.cmd pre{margin:0;font:12.5px/1.55 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+tr.me td{background:var(--accent-soft)}
+td:first-child{font-weight:600;white-space:nowrap}
+/* skills list */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.filters input[type=search]{flex:1 1 240px}
+.count{font:14px var(--body);color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+ul.plain{margin:0;padding-left:18px;display:grid;gap:6px}
+.path{display:grid;gap:6px;padding-block:10px;border-top:1px solid var(--line)}
+.path:first-of-type{border-top:0}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.chip,.btn,.station .num,.card{transition:border-color .15s,background .15s,color .15s}}
+</style></head><body>
+
+<header class="top"><div class="wrap">
+  <div class="kicker">Vibecoding for UX Designers, Technische Hochschule Ingolstadt</div>
+  <h1>UXD AI Toolkit Navigator</h1>
+  <p class="lede">Pick the tools you work with once. Then find the skill for where you are in your project, get the prompt written for your tools, and see how to install the skills. You stay the designer: every skill ends with what you must check or decide yourself.</p>
+  <p class="ver"><b>Prof. Dr. Ignacio Alvarez</b>, Human-Centered Intelligent Systems Lab<br>Toolkit version 0.2.0, 23 skills</p>
+</div></header>
+
+<div class="bar"><div class="wrap">
+  <div class="setup" role="group" aria-label="My setup">
+    <span class="lbl">My setup</span>
+    <label for="set-runner">I talk to AI in <select id="set-runner"></select></label>
+    <label for="set-builder">I build with <select id="set-builder"></select></label>
+  </div>
+  <nav class="tabs" aria-label="Sections" id="tabs">
+    <a href="#process">Process</a><a href="#builder">Prompt builder</a><a href="#install">Install</a><a href="#skills">All skills</a><a href="#start">Getting started</a>
+  </nav>
+</div></div>
+
+<main><div class="wrap">
+
+<section class="view" id="v-process" aria-labelledby="h-proc">
+  <div class="panel">
+    <h2 id="h-proc">Where are you in your project?</h2>
+    <p class="muted">Six phases. You can enter anywhere and go back any time: with AI, design moves in short loops between exploring, building and testing.</p>
+    <div class="rail" id="rail" role="group" aria-label="Phases"></div>
+    <div class="lost"><span>Not sure where you are?</span><button class="btn" type="button" id="lost-btn">Ask ux-process-guide</button></div>
+  </div>
+  <div class="panel" id="phase-head"></div>
+  <div class="cards" id="phase-cards"></div>
+</section>
+
+<section class="view" id="v-builder" hidden aria-labelledby="h-b">
+  <div class="panel">
+    <h2 id="h-b">Prompt builder</h2>
+    <p class="muted">Choose what you want to do and fill in what you know. The prompt and the steps follow the tools you picked under My setup.</p>
+  </div>
+  <div class="builder">
+    <div class="panel form">
+      <div class="field"><label for="b-want">What do you want to do?</label><select id="b-want"></select></div>
+      <div class="field"><label for="b-product">Your project</label><input type="text" id="b-product" placeholder="e.g. the THI GreenAI Portal"><span class="hint">Name it, or describe it in a few words.</span></div>
+      <div class="field"><label for="b-users">Your users</label><input type="text" id="b-users" placeholder="e.g. THI students from all faculties"></div>
+      <div id="b-io"></div>
+    </div>
+    <div class="out">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Your prompt</h3><span class="tags" id="b-tags"></span></div>
+        <pre class="box" id="b-out"></pre>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="b-copy" type="button">Copy prompt</button><span class="muted" style="font-size:13px">Replace everything in &lt;angle brackets&gt; with your own content.</span></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:10px" id="b-how-h">How to run it</h3>
+        <ol class="steps" id="b-steps"></ol>
+      </div>
+      <div class="panel" id="b-next-panel">
+        <h3 style="margin-bottom:8px">What usually comes next</h3>
+        <div class="chips" id="b-next"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-install" hidden aria-labelledby="h-i">
+  <div class="panel">
+    <h2 id="h-i">Install the skills</h2>
+    <p class="muted" id="i-lede"></p>
+  </div>
+  <div class="panel" id="i-steps"></div>
+  <div class="panel">
+    <h3 style="margin-bottom:8px">If a skill does not show up</h3>
+    <ul class="plain" id="i-trouble"></ul>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:8px">All tools at a glance</h3>
+    <div class="tablewrap"><table><thead><tr><th>Tool</th><th>One project</th><th>All your projects</th><th>How to call a skill</th></tr></thead><tbody id="i-table"></tbody></table></div>
+    <p class="muted" style="margin-top:10px;font-size:13px">Folder locations were checked against each tool's documentation in November 2026. These tools change often. If something does not match, look at the tool's current skills documentation.</p>
+  </div>
+</section>
+
+<section class="view" id="v-skills" hidden aria-labelledby="h-s">
+  <div class="panel">
+    <h2 id="h-s">All 23 skills</h2>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search: persona, wireframe, error, PRD, git ..." aria-label="Search skills">
+      <select id="f-phase" aria-label="Phase"></select>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+  </div>
+  <div class="cards" id="list"></div>
+</section>
+
+<section class="view" id="v-start" hidden aria-labelledby="h-g">
+  <div class="panel">
+    <h2 id="h-g">Getting started</h2>
+    <ol class="steps" style="margin-top:10px">
+      <li><div><b>Pick your tools.</b> Set them once under My setup at the top. Every prompt and install step on this page adapts.</div></li>
+      <li><div><b>Install the skills.</b> Follow <a href="#install">Install</a>. It takes about two minutes. In chat-only tools there is nothing to install.</div></li>
+      <li><div><b>Say where you are.</b> Open <a href="#process">Process</a>, pick your phase and copy a prompt. If unsure, ask <code>ux-process-guide</code>.</div></li>
+      <li><div><b>Answer the skill's questions.</b> A skill asks for what it needs. It will not invent users, quotes or requirements, so have your material ready.</div></li>
+      <li><div><b>Do your part.</b> Every skill ends with a block called Your judgment. Those checks are the design work.</div></li>
+      <li><div><b>Save as you go.</b> Keep outputs as files in your project and commit after each working step.</div></li>
+    </ol>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3 style="margin-bottom:4px">What a skill is</h3>
+      <p style="font-size:14px">A folder with a file called <code>SKILL.md</code>: plain-text instructions that an AI agent loads when your request matches. Open one and read it. That is part of the learning, and you can change it or write your own.</p>
+<pre class="tree">your-project/
+├── .agents/skills/      the toolkit skills
+├── PRD.md               what you are building
+├── DESIGN.md            how it looks and feels
+├── AGENTS.md            how the agent should work
+├── PROMPTS.md           your prompt log
+└── research/            notes, themes, personas</pre>
+    </div>
+    <div class="panel">
+      <h3 style="margin-bottom:8px">Ground rules</h3>
+      <ul class="plain" style="font-size:14px">
+        <li>AI is the pattern-finder. You are the meaning-maker.</li>
+        <li>Skills never invent users, quotes, data or requirements. They ask, or mark an assumption.</li>
+        <li>Your own ideas and sketches come first. AI adds breadth and speed afterwards.</li>
+        <li>Anonymize research data before you paste it. Get consent before recording or using AI in a session.</li>
+        <li>Synthetic users are for rehearsal. They are never evidence.</li>
+        <li>One step at a time, with a saved checkpoint after each.</li>
+        <li>"Done!" from an AI is a claim. The check decides.</li>
+        <li>Log your prompts in <code>PROMPTS.md</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:4px">Typical paths</h3>
+    <p class="muted" style="font-size:13.5px">Select a skill to open it in the prompt builder.</p>
+    <div id="paths"></div>
+  </div>
+</section>
+
+</div></main>
+
+<script>
+const DATA = {"phases": [{"id": "research", "n": 1, "name": "Research", "when": "You need to learn from real people", "what": "Plan what to ask, rehearse, run the sessions and capture what was said.", "you": "You talk to the people. AI never replaces a participant."}, {"id": "define", "n": 2, "name": "Define", "when": "You have data and need to make sense of it", "what": "Find patterns in interviews and numbers, and describe your users with evidence.", "you": "You decide what the patterns mean and which ones are strong enough to act on."}, {"id": "ideate", "n": 3, "name": "Ideate", "when": "You know the problem and need a concept", "what": "Widen the idea space, narrow it down, test the idea and write the concept up.", "you": "Your own ideas come first. You choose the direction."}, {"id": "prototype", "n": 4, "name": "Prototype", "when": "You have a concept and need to see it", "what": "Settle the flow in wireframes, then apply brand and polish, with reviews in between.", "you": "You sketch first and own fit and finish."}, {"id": "build", "n": 5, "name": "Build", "when": "You want a working product", "what": "Plan with a PRD, give the agent context, then build one feature at a time with checkpoints.", "you": "You decide what to build, and you save a checkpoint after every step."}, {"id": "test", "n": 6, "name": "Test", "when": "Something is built and you need to know if it is good", "what": "Check the build against your own criteria and review usability and accessibility.", "you": "You define done. Then test with real people."}], "skills": [{"id": "ux-process-guide", "phase": "any", "where": "chat", "sum": "Finds where you are in the process and points to the next skill.", "want": "I do not know where to start or what to do next", "needs": "One sentence about your project and what you already have", "gives": "The next skill to use, with a ready prompt", "prompt": "I am working on {product}{usersp}. So far I have <what exists: research, ideas, a brief, wireframes, a PRD, a prototype>. I need <what you need next> by <date>. What should I do next?", "next": [], "desc": "Entry point and guide for the UXD AI Toolkit. Finds out where a designer is in the UX process (research, define, ideate, prototype, build, test), recommends which toolkit skill to use next and what input it needs, and carries results from one step into the next. Use when someone asks where to start, what to do next, how to use AI in their UX project, which skill fits their task, or wants an overview of the toolkit or a plan for a whole project."}, {"id": "interview-guide", "phase": "research", "where": "chat", "sum": "Drafts, bias-checks and pilots interview guides and survey questions.", "want": "Write interview or survey questions", "needs": "Research goal, who the participants are, interview or survey", "gives": "A guide or survey where every question maps to a research goal", "prompt": "Help me write an interview guide for {product}. Research goal: <what you want to learn>. Participants: {users}. Format: <30-minute interviews / 7-minute survey>. Run the bias audit and the why test on every question.", "next": ["synthetic-user-rehearsal", "interview-moderator"], "desc": "Drafts, critiques and refines user research instruments (semi-structured interview guides, survey questions, response scales) so they are neutral, single-construct and tied to a research goal. Use when someone wants interview questions, a discussion guide, a questionnaire or survey items, wants an existing set checked for bias or leading wording, wants to pilot questions before fieldwork, or needs a research instrument translated."}, {"id": "synthetic-user-rehearsal", "phase": "research", "where": "chat", "sum": "Plays a participant so you can rehearse, then gives feedback on your moderation.", "want": "Practice an interview before meeting real people", "needs": "Your interview guide and a participant description", "gives": "A rehearsal, then feedback on your questions. No research data.", "prompt": "Let's rehearse my interview for {product}. Play this participant: <persona or short participant description>. Difficulty: realistic. Here is my guide: <paste>. I will start asking. Stay in character until I write END, then debrief me.", "next": ["interview-moderator"], "desc": "Role-plays a participant (synthetic user) so a UX designer can rehearse an interview, pilot an interview guide, or practice moderation before meeting real people, then debriefs on the moderator's technique. Use when someone wants to practice or simulate a user interview, test questions on a simulated persona, talk to a synthetic user, or asks whether AI personas can replace real participants."}, {"id": "interview-moderator", "phase": "research", "where": "chat", "sum": "Readiness check before, silent co-pilot during, structured notes after a session.", "want": "Run an interview and turn it into notes", "needs": "Before: your guide. After: the anonymized transcript or notes", "gives": "Follow-up probes during the session, structured notes with verbatim quotes after", "prompt": "I finished an interview for {product}. Turn this anonymized transcript into structured research notes with verbatim quotes and IDs. Participant: P1. Transcript: <paste>", "next": ["qual-analysis"], "desc": "Supports a UX researcher around a user interview session. Before, it checks readiness. During, it acts as a silent co-pilot that suggests one neutral follow-up probe at a time or explains a technical term in plain words. After, it turns a transcript or raw notes into structured research notes with quotes and IDs. Use when someone is about to moderate an interview or usability session, wants live follow-up suggestions, or wants interview transcripts or notes summarized or structured."}, {"id": "qual-analysis", "phase": "define", "where": "chat", "sum": "Codes, themes and pain points from qualitative data, with verbatim evidence.", "want": "Find themes in interviews or user comments", "needs": "Anonymized notes or transcripts with participant IDs, and the research goal", "gives": "Codebook, themes, pain points, each with quotes and counts", "prompt": "Run a thematic analysis on my interview notes for {product}. Research goal: <goal>. The data is anonymized: <paste notes with P1, P2, ...>. Show codes, themes with verbatim quotes, and what does not fit.", "next": ["persona-builder", "divergent-ideation"], "desc": "Analyzes qualitative user research data (interview transcripts or notes, open-ended survey answers, usability observations, app reviews, support tickets) into codes, themes, pain points and design implications, with verbatim quotes and participant IDs as evidence. Use when someone wants thematic analysis, coding, affinity clustering of research data, pain point extraction, sentiment classification of user feedback, or a synthesis of interviews."}, {"id": "quant-analysis", "phase": "define", "where": "chat", "sum": "Descriptives, analysis plan, a check of your statistics, plain-language results.", "want": "Analyze survey or test numbers", "needs": "A CSV or your R/SPSS output, research questions, study design", "gives": "Descriptive statistics and charts, or a review of your own analysis", "prompt": "I have survey results for {product} in <file.csv>. Research questions: <RQ1, RQ2>. Design: <between/within, N = ...>. Explore the data with code, show the code, and tell me which test fits each question.", "next": ["persona-builder"], "desc": "Supports quantitative UX data analysis (survey results, Likert scales, SUS, NPS, task times, error rates, A/B comparisons). It runs descriptive statistics and charts, proposes or checks a statistical analysis plan, reviews R or SPSS output for wrong tests and violated assumptions, and explains results in plain language with effect sizes. Use when someone has a CSV or numbers from a study, asks which statistical test to use, wants their analysis double-checked, or needs help interpreting or reporting statistics."}, {"id": "persona-builder", "phase": "define", "where": "chat", "sum": "Turns real research data into personas with a traceability table and bias audit.", "want": "Describe my users as personas", "needs": "Research findings (notes, quotes, survey results)", "gives": "Personas where every claim points back to a participant", "prompt": "Build personas for {product} from my research. The personas are for <who will use them>. Here are my anonymized findings: <paste>. Cluster by behavior, run the bias audit and give me the traceability table.", "next": ["divergent-ideation", "concept-brief"], "desc": "Synthesizes real user research (interview notes, quotes, survey results, observations) into evidence-based user personas with a traceability table, a bias and stereotype audit, and task scenarios. Use when someone wants to create, draft, check or improve a user persona, proto-persona or user segment description, or asks to turn research findings into personas. Also use when asked to \"just make a persona\" without data, to steer the request toward evidence."}, {"id": "divergent-ideation", "phase": "ideate", "where": "chat", "sum": "Expands your own ideas in many directions, weird ones first.", "want": "Get more and wilder ideas", "needs": "The design challenge and the ideas your team already has", "gives": "20 to 30 sticky-note ideas in loose themes", "prompt": "We are brainstorming for {product}. Design challenge: <How might we ...>. Users: {users}. Our own ideas so far: <paste list or attach a photo of the board>. Give us 25 more ideas from different points of view. Weird ones first.", "next": ["idea-clustering"], "desc": "Generates a wide and varied set of ideas for a UX design challenge during the divergent phase of brainstorming, building on the ideas a team already has (text, a list, or a photo of a sticky-note board). Use when someone is brainstorming, stuck or out of ideas, wants more or wilder concepts, wants to expand How Might We questions, or asks for ideas from different points of view."}, {"id": "idea-clustering", "phase": "ideate", "where": "chat", "sum": "Groups ideas into themes and supports a shortlist.", "want": "Group and shortlist our ideas", "needs": "A list or photo of all ideas", "gives": "Named clusters, outliers, and a draft shortlist you can overwrite", "prompt": "Cluster these brainstorming ideas for {product} into themes. Keep our wording and number each idea. Ideas: <paste or attach board photo>. Stop after clustering so we can refine before any scoring.", "next": ["idea-filter", "concept-brief"], "desc": "Clusters brainstorming ideas into meaningful themes and helps a team converge on a shortlist using affinity mapping, dot voting support, and ICE or impact/effort scoring with stated reasoning. Use after an ideation session when someone has a list or photo of sticky notes and wants them grouped, themed, organized, prioritized, scored or narrowed down."}, {"id": "idea-filter", "phase": "ideate", "where": "chat", "sum": "Four product strategy questions: build, rework or drop.", "want": "Decide whether an idea is worth building", "needs": "The idea in one or two sentences and the evidence you have", "gives": "A verdict per question, the riskiest assumption and the cheapest test", "prompt": "Run the idea filter on this idea for {product}: <idea in two sentences>. Evidence so far: <research, observations, or none yet>. Be direct.", "next": ["concept-brief"], "desc": "Pressure-tests a product or feature idea before it gets built, using four product strategy questions (should this exist, who are we solving for, is it a real problem they want solved, does it fit the product context), and returns a build, rework or drop recommendation with the evidence gaps named. Use when someone has a new idea, a feature request or a quick AI prototype and asks whether it is worth building, wants a critical opinion, or needs to choose between several ideas."}, {"id": "concept-brief", "phase": "ideate", "where": "chat", "sum": "Workshop summary, one-page product brief and a pitch outline.", "want": "Write up our concept as a product brief", "needs": "Workshop material and the direction you chose", "gives": "Workshop summary, product brief, 5-minute pitch outline", "prompt": "Turn our workshop results into a product brief for {product}. Chosen direction: <one sentence>. Users: {users}. Material: <paste clusters, shortlist, notes>. Mark every user claim as research or assumption.", "next": ["text-to-wireframe", "prd-builder", "concept-visuals"], "desc": "Condenses the output of a brainstorming or ideation workshop (sticky notes, clusters, shortlist, discussion notes) into a workshop insights summary and a one-page product brief with problem, users, solution and key features, plus an outline for a short pitch or lightning talk. Use when someone wants to summarize a workshop, write up brainstorming results, create a product or concept brief, define a concept after ideation, or prepare a concept pitch."}, {"id": "concept-visuals", "phase": "ideate", "where": "chat", "handoff": "image", "sum": "Image prompts for problem scenes, storyboards and moodboards.", "want": "Visualize the problem or the concept", "needs": "The concept or a scenario, and the image tool you use", "gives": "Two or three image prompts to paste into your image tool", "prompt": "Write image prompts for a pitch slide about {product}. Show <the problem moment / the person using the solution>. Image tool: <tool>. Style: <illustration or photo, brand colors>. No text in the image.", "next": [], "desc": "Writes image-generation prompts that visualize a problem statement, concept, scenario, storyboard frame or moodboard for a UX project, adapted to the image tool in use, and reviews the results. Use when someone wants to illustrate an idea, create inspiring visuals for a brainstorm or pitch, make a storyboard or moodboard with AI, or needs a better prompt for an image generator."}, {"id": "text-to-wireframe", "phase": "prototype", "where": "chat", "handoff": "design", "sum": "From brief and one user flow to low-fidelity wireframes.", "want": "Get first wireframes", "needs": "Product brief, one main user flow, ideally your hand sketch", "gives": "A wireframe prompt for your design tool, or a gray HTML wireframe", "prompt": "Create low-fidelity wireframes for {product}. Main flow: <user goal, step by step>. Platform: <mobile-first / web>. I attached my hand sketch. First agree on the flow and screens with me, then write the wireframe prompt for <Figma Make / Stitch / HTML>.", "next": ["prototype-review", "wireframe-to-hifi"], "desc": "Turns a product brief, user flow, hand sketch or screenshot into low-fidelity wireframes, either as a wireframe prompt for a design tool (Figma Make, Stitch, Miro and similar) or as a simple grayscale HTML wireframe. Covers structure, navigation, content hierarchy and labeled components, with no visual styling. Use when someone wants wireframes, a first layout, a screen flow, a lo-fi prototype, or wants to go from a blank canvas or a sketch to a first draft."}, {"id": "wireframe-to-hifi", "phase": "prototype", "where": "chat", "handoff": "design", "sum": "Design specification with tokens and a high-fidelity prompt.", "want": "Apply brand and polish to a wireframe", "needs": "The approved wireframe and your brand identity", "gives": "Design specification (tokens, type, components) and a hi-fi prompt", "prompt": "Turn my wireframe for {product} into high fidelity. Keep layout and flow exactly. Brand: <colors with hex, fonts, logo>. Write the design specification with tokens and contrast checks first, then the prompt for <design tool>.", "next": ["prototype-review", "project-context-files"], "desc": "Turns a low-fidelity wireframe into a high-fidelity mock-up or interactive prototype by applying brand identity, design tokens, typography, spacing, components and accessibility rules while keeping the approved layout and flow. Produces a design specification and a prompt for the design tool (Figma Make, Stitch, Lovable and similar). Use when someone wants to style a wireframe, make a design high fidelity, apply a brand or design system, or get a polished mock-up from a draft."}, {"id": "prototype-review", "phase": "prototype", "where": "chat", "also": "test", "sum": "Usability and accessibility review with a prioritized fix list.", "want": "Get feedback on a screen or prototype", "needs": "Screenshots or the prototype, the intended flow and user", "gives": "What works, findings by severity, and what was not checked", "prompt": "Review this <wireframe / mock-up / prototype> of {product}. Intended flow: <what the user should be able to do>. User: {users}. I attached screenshots. Give me the three things to fix first.", "next": ["wireframe-to-hifi", "feature-prompt"], "desc": "Reviews a wireframe, mock-up or working prototype for usability and accessibility problems against the intended user flow, using Nielsen's heuristics and WCAG checks, and returns a short prioritized fix list with ready-to-use fix prompts. Use when someone shares a screen, screenshot, prototype link or front-end code and asks for feedback, a UX review, a heuristic evaluation, an accessibility check, or what to improve next."}, {"id": "prd-builder", "phase": "build", "where": "chat", "sum": "Guided PRD from your brief, using the course template.", "want": "Write the PRD before building", "needs": "Product brief, research, design decisions, target platform", "gives": "PRD.md with features, acceptance criteria and build order", "prompt": "Help me write the PRD for {product} with the course template. I will build it with {builder}. Here is my product brief: <paste>. Fill what you can, mark the rest TBD and interview me for the gaps.", "next": ["prd-critique", "project-context-files", "kickoff-prompt"], "desc": "Builds a Product Requirements Document (PRD) for a vibe coding project from a product brief, research and design decisions, through a short guided interview, using the course Vibe-Coding PRD template. Use when someone wants to write, draft, start or complete a PRD, plan an app before building it with an AI coding tool, or turn a concept into requirements, features and acceptance criteria."}, {"id": "prd-critique", "phase": "build", "where": "chat", "sum": "Checks whether a PRD is ready for an AI builder.", "want": "Check my PRD", "needs": "Your PRD and the platform you will build with", "gives": "A verdict, findings, and rewrites for the weakest parts", "prompt": "Critique my PRD for {product}. I will build with {builder}. Is it ready for vibe coding? PRD: <paste or attach PRD.md>", "next": ["kickoff-prompt"], "desc": "Reviews an existing Product Requirements Document for readiness to be built with an AI coding tool. Checks whether it is prescriptive enough, whether acceptance criteria are testable, whether the vibe is translated into rules, whether exact values are machine-readable, and whether scope and platform fit. Returns prioritized findings with rewritten examples. Use when someone has a PRD and asks for feedback, a review or a critique, asks whether it is ready for vibe coding, or keeps getting poor results from an AI builder."}, {"id": "project-context-files", "phase": "build", "where": "project", "sum": "Writes AGENTS.md and DESIGN.md for your project.", "want": "Make the agent follow my design system and rules", "needs": "PRD, design specification or tokens, the project folder", "gives": "AGENTS.md and DESIGN.md in your project root", "prompt": "Create AGENTS.md and DESIGN.md for {product}. Read PRD.md and the existing project files first. Design tokens: <paste or point to your design specification>. Do not invent commands or values. List what you could not fill.", "next": ["kickoff-prompt", "feature-prompt"], "desc": "Creates or updates the context files that AI coding agents read in a project. AGENTS.md covers how to build (commands, conventions, structure, rules). DESIGN.md covers how it should look and feel (theme, color tokens, typography, components, layout, do's and don'ts). Built from the PRD, the design specification and the existing code. Use when someone starts a project in Cursor, Codex, Claude Code or Antigravity, wants the AI to stop ignoring their design system or conventions, asks for an AGENTS.md, DESIGN.md or CLAUDE.md, or keeps repeating the same instructions in every prompt."}, {"id": "kickoff-prompt", "phase": "build", "where": "chat", "handoff": "builder", "sum": "Writes the first prompt of a vibe coding project, for your platform.", "want": "Start the build with a strong first prompt", "needs": "PRD or product brief, the build tool, design direction", "gives": "A kick-off prompt with scope, limits and a check", "prompt": "Write a kick-off prompt for {builder} from my PRD for {product}. Goal of the first build: <Scaffold the whole page / Foundations first>. PRD: <attach PRD.md or paste>.", "next": ["checkpoint-coach", "feature-prompt"], "desc": "Writes the first prompt for a vibe coding project (the kick-off prompt) from a PRD or product brief, tailored to the target platform (Lovable, Replit, DeepSite, Cursor, Antigravity, Codex, Claude Code). Use when someone is about to start building an app or prototype with an AI coding tool, asks for a starter, initial or kick-off prompt, wants to turn a PRD or concept into a first build prompt, or wants an existing kick-off prompt reviewed."}, {"id": "feature-prompt", "phase": "build", "where": "project", "handoff": "builder", "sum": "One focused prompt for the next feature.", "want": "Add the next feature", "needs": "The feature from your PRD and what already works", "gives": "One prompt: requirements, what not to change, a check", "prompt": "I want to add <feature> to {product} in {builder}. It is section <x> of PRD.md. Already working: <what exists>. My last working state is saved. Write one focused prompt for it.", "next": ["acceptance-check", "checkpoint-coach", "debug-protocol"], "desc": "Writes one focused prompt to add or change a single feature in an existing vibe coding project, with the relevant context, acceptance criteria, what may change and what must stay untouched, and a way to verify the result. Splits oversized requests into a sequence of small prompts. Use during a build when someone wants to add the next feature, change existing behavior or styling, or has a long wish list for their AI coding tool."}, {"id": "checkpoint-coach", "phase": "build", "where": "project", "sum": "Git in plain language: save, branch, undo.", "want": "Save my progress or undo what the AI did", "needs": "Your project, and what you want: set up, save, undo, branch", "gives": "The next Git step, explained, one at a time", "prompt": "I am building {product} with {builder}. I want to <set up GitHub / save a checkpoint / go back to the last working version / start a feature branch>. Coach me step by step.", "next": ["feature-prompt"], "desc": "Coaches designers through version control while vibe coding. Sets up a Git repository, saves checkpoints (commits) after each AI task, works on branches, opens pull requests, and rolls back safely when the AI breaks something. Explains each step in plain language and can run the git commands where the environment allows. Use when someone asks how to save their progress, undo what the AI did, go back to a working version, set up GitHub for a project, resolve a merge conflict, or work on a vibe coding project as a team."}, {"id": "debug-protocol", "phase": "build", "where": "project", "handoff": "builder", "sum": "Stop, understand, then one targeted fix.", "want": "Fix something that broke", "needs": "Expected vs. actual behavior, the full error message, a screenshot", "gives": "A plain explanation of the cause and one targeted fix prompt", "prompt": "Something broke in {product} ({builder}). Expected: <what should happen>. Actual: <what happens>. Steps: <how to reproduce>. Full error: <paste>. It started after: <last change>. Help me understand it before we fix anything.", "next": ["checkpoint-coach", "acceptance-check"], "desc": "Guides a non-programmer through debugging a vibe-coded app. Stop, describe expected versus actual behavior, collect the full error message and screenshots, have the AI explain the likely cause before changing anything, then write one targeted fix prompt, with a way out when fixes keep failing. Use when something is broken, an error message appears, the AI tool keeps failing to fix a bug, the app worked before and now does not, or someone is stuck in a fix loop."}, {"id": "acceptance-check", "phase": "test", "where": "project", "sum": "Checks the build against the PRD's acceptance criteria.", "want": "Check that the build does what the PRD says", "needs": "Acceptance criteria from the PRD and access to the build", "gives": "Pass, fail or not checked for each criterion, with fix prompts", "prompt": "Run an acceptance check on <feature / the whole MVP> of {product} against PRD.md. Use realistic test data and edge cases. Report pass, fail or not checked for each criterion.", "next": ["prototype-review", "checkpoint-coach"], "desc": "Checks a vibe-coded build against the acceptance criteria in its PRD. Turns criteria into a test checklist with realistic test data and edge cases, runs the checks where the environment allows or guides the student through them by hand, and reports pass, fail or not checked for each, with fix prompts for failures. Use when a feature or prototype is \"done\" and someone wants to verify it, test it, check it against requirements, prepare a demo or submission, or decide whether it is ready to ship."}], "runners": [{"id": "claude-code", "name": "Claude Code", "kind": "agent", "project": ".claude/skills/", "home": "~/.claude/skills/", "invoke": "Type / and pick the skill, or just describe what you need.", "slash": "/{id}", "verify": "Type / in the chat. The skill names should appear in the list."}, {"id": "cursor", "name": "Cursor", "kind": "agent", "project": ".agents/skills/", "home": "~/.cursor/skills/", "invoke": "In Agent chat, type / and search for the skill name, or just describe what you need.", "slash": "/{id}", "verify": "Type / in Agent chat and search for \"interview\". You can also find the skills in Cursor Settings under Rules.", "note": "Cursor also reads .cursor/skills/ and .claude/skills/."}, {"id": "codex", "name": "Codex", "kind": "agent", "project": ".agents/skills/", "home": "~/.agents/skills/", "invoke": "Type $ to mention a skill, run /skills to list them, or just describe what you need.", "slash": "${id}", "verify": "Run /skills. The toolkit skills should be listed. If not, restart Codex."}, {"id": "antigravity", "name": "Antigravity", "kind": "agent", "project": ".agents/skills/", "home": "~/.gemini/config/skills/", "invoke": "Type /skill-name in the prompt panel, or just describe what you need.", "slash": "/{id}", "verify": "Open the Customizations menu in the agent side panel. The skills should be listed there."}, {"id": "claude-app", "name": "Claude app", "kind": "app", "invoke": "Describe what you need, or name the skill: \"Use the interview-guide skill\".", "verify": "Ask: \"Which UXD toolkit skills do you have?\""}, {"id": "chat", "name": "Another chat (ChatGPT, Gemini, ...)", "short": "your chat tool", "kind": "paste", "invoke": "Paste the skill file into a new chat first, then send your prompt."}], "builders": [{"id": "lovable", "name": "Lovable", "skills": false, "hint": "Use Chat mode to plan first (\"Investigate but do not write code yet\"), then Builder mode. Attach your PRD. Use the Visual Editor for small style changes to save credits."}, {"id": "replit", "name": "Replit", "skills": false, "hint": "Give it to the Replit Agent. Ask it to propose a plan first and wait for your approval. Use its checkpoints to roll back."}, {"id": "deepsite", "name": "DeepSite", "skills": false, "hint": "DeepSite cannot read files. The prompt must contain everything. Ask for one single index.html."}, {"id": "cursor", "name": "Cursor", "skills": true, "hint": "Use Plan mode first. Reference your files with @PRD.md and @DESIGN.md."}, {"id": "antigravity", "name": "Antigravity", "skills": true, "hint": "Ask for an implementation plan artifact and approve it before it builds. Ask for a browser walkthrough with screenshots as proof."}, {"id": "codex", "name": "Codex", "skills": true, "hint": "Run /init once so AGENTS.md exists. Point to PRD.md and ask how you can verify the result."}, {"id": "claude-code", "name": "Claude Code", "skills": true, "hint": "Start in plan mode and approve the plan before it edits. Point to PRD.md and DESIGN.md."}], "paths": [{"name": "Research to concept", "steps": ["interview-guide", "synthetic-user-rehearsal", "interview-moderator", "qual-analysis", "persona-builder", "divergent-ideation", "idea-clustering", "idea-filter", "concept-brief"]}, {"name": "Concept to prototype", "steps": ["concept-brief", "text-to-wireframe", "prototype-review", "wireframe-to-hifi", "prototype-review"]}, {"name": "Concept to working product", "steps": ["concept-brief", "prd-builder", "prd-critique", "project-context-files", "kickoff-prompt", "feature-prompt", "acceptance-check", "checkpoint-coach"]}, {"name": "Hackathon in one day", "steps": ["divergent-ideation", "idea-clustering", "concept-brief", "prd-builder", "kickoff-prompt", "feature-prompt", "acceptance-check"]}]};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = Object.fromEntries(DATA.skills.map(s => [s.id, s]));
+const P = Object.fromEntries(DATA.phases.map(p => [p.id, p]));
+const R = Object.fromEntries(DATA.runners.map(r => [r.id, r]));
+const B = Object.fromEntries(DATA.builders.map(b => [b.id, b]));
+const phaseName = id => id === "any" ? "Any time" : P[id].name;
+
+/* ---- state (remembered per browser when storage is available) ---- */
+const store = {
+  get(k, d){ try { return localStorage.getItem("uxd-" + k) || d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem("uxd-" + k, v); } catch(e){} }
+};
+const st = { runner: store.get("runner", "cursor"), builder: store.get("builder", "lovable"), phase: "research", scope: "project", os: /Win/i.test(navigator.platform || "") ? "win" : "mac" };
+if (!R[st.runner]) st.runner = "cursor";
+if (!B[st.builder]) st.builder = "lovable";
+const rShort = () => R[st.runner].short || R[st.runner].name;
+
+$("#set-runner").innerHTML = DATA.runners.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join("");
+$("#set-builder").innerHTML = DATA.builders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("");
+$("#set-runner").value = st.runner; $("#set-builder").value = st.builder;
+$("#set-runner").onchange = e => { st.runner = e.target.value; store.set("runner", st.runner); renderAll(); };
+$("#set-builder").onchange = e => { st.builder = e.target.value; store.set("builder", st.builder); renderAll(); };
+
+/* ---- prompt text ---- */
+function fillPrompt(s, product, users){
+  const p = product || "<your project>", u = users || "<your users>";
+  let t = s.prompt.replaceAll("{product}", p).replaceAll("{users}", u)
+    .replaceAll("{usersp}", users ? ` for ${users}` : "").replaceAll("{builder}", B[st.builder].name);
+  return R[st.runner].kind === "paste" ? t : `Use the ${s.id} skill.\n\n${t}`;
+}
+async function copyText(text, btn){
+  const done = msg => { const o = btn.dataset.label || btn.textContent; btn.dataset.label = o; btn.textContent = msg; setTimeout(() => btn.textContent = o, 1600); };
+  try { await navigator.clipboard.writeText(text); done("Copied"); }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch(_){}
+    ta.remove(); done(ok ? "Copied" : "Select the text and copy it");
+  }
+}
+function tagsFor(s){
+  const t = [`<span class="tag ph">${phaseName(s.phase)}</span>`];
+  if (s.also) t.push(`<span class="tag ph">${phaseName(s.also)}</span>`);
+  if (s.where === "project") t.push(`<span class="tag proj" title="Works best where the AI can see your project files">needs your project</span>`);
+  return t.join("");
+}
+function skillCard(s){
+  const text = fillPrompt(s);
+  return `<article class="card" id="sk-${s.id}">
+    <div class="card-top"><span class="sk-id">${s.id}</span><span class="tags">${tagsFor(s)}</span></div>
+    <p>${esc(s.sum)}</p>
+    <dl class="io"><div><dt>You bring</dt><dd>${esc(s.needs)}</dd></div><div><dt>You get</dt><dd>${esc(s.gives)}</dd></div></dl>
+    <div class="prompt"><p>${esc(text)}</p><button class="btn" type="button" data-copy="${s.id}">Copy</button></div>
+    <div class="row"><button class="btn primary" type="button" data-build="${s.id}">Fill in and see the steps</button>
+    ${s.next.length ? `<span class="muted" style="font-size:13px">Then:</span><span class="chips">${s.next.map(n => `<button class="chip" type="button" data-build="${n}">${n}</button>`).join("")}</span>` : ""}</div>
+  </article>`;
+}
+function wire(root){
+  root.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(fillPrompt(S[b.dataset.copy]), b));
+  root.querySelectorAll("[data-build]").forEach(b => b.onclick = () => openBuilder(b.dataset.build));
+}
+
+/* ---- process ---- */
+function renderProcess(){
+  $("#rail").innerHTML = DATA.phases.map(p => `<button class="station" type="button" data-p="${p.id}" aria-pressed="${p.id === st.phase}">
+    <span class="dot"><span class="num">${p.n}</span><span class="line"></span></span>
+    <span><span class="nm">${esc(p.name)}</span><span class="wh">${esc(p.when)}</span></span></button>`).join("");
+  $("#rail").querySelectorAll(".station").forEach(b => b.onclick = () => { st.phase = b.dataset.p; renderProcess(); });
+  const p = P[st.phase];
+  const sk = DATA.skills.filter(s => s.phase === st.phase || s.also === st.phase);
+  $("#phase-head").innerHTML = `<div class="phase-head">
+    <div><div class="eyebrow">Phase ${p.n} of 6, ${sk.length} skill${sk.length === 1 ? "" : "s"}</div><h2 style="margin-top:6px">${esc(p.name)}</h2><p>${esc(p.what)}</p></div>
+    <div class="you"><b>Your part</b>${esc(p.you)}</div></div>`;
+  $("#phase-cards").innerHTML = sk.map(skillCard).join("");
+  wire($("#phase-cards"));
+}
+$("#lost-btn").onclick = () => openBuilder("ux-process-guide");
+
+/* ---- builder ---- */
+$("#b-want").innerHTML = [{id:"any",name:"Any time"}, ...DATA.phases].map(p => {
+  const sk = DATA.skills.filter(s => s.phase === p.id);
+  return `<optgroup label="${esc(p.name)}">${sk.map(s => `<option value="${s.id}">${esc(s.want)}</option>`).join("")}</optgroup>`;
+}).join("");
+["#b-want","#b-product","#b-users"].forEach(id => $(id).addEventListener("input", renderBuilder));
+function runSteps(s){
+  const r = R[st.runner], b = B[st.builder], out = [];
+  const inst = `<a href="#install">Install</a>`;
+  if (r.kind === "paste"){
+    out.push(`Open <code>paste-me/${s.id}.md</code> in the toolkit folder. Copy all of it into a new chat in ${esc(rShort())} and send it.`);
+    out.push(`Then send the prompt above. Attach the files or screenshots it mentions.`);
+  } else if (r.kind === "app"){
+    out.push(`Open a new chat in the Claude app. The toolkit must be installed once (see ${inst}).${s.where === "project" ? " Connect your project folder to the chat so Claude can read your files." : ""}`);
+    out.push(`Paste the prompt and send it. ${esc(r.invoke)}`);
+  } else {
+    out.push(`Open your project folder in ${esc(r.name)}. The skills must be in <code>${r.project}</code> (see ${inst}).`);
+    out.push(`Paste the prompt into the agent chat. Shortcut: <code>${esc(r.slash.replace("{id}", s.id))}</code>`);
+  }
+  if (s.where === "project" && r.kind !== "agent"){
+    out.push(`This skill works best where the AI can see your project. In a chat, paste the relevant files, the full error text or screenshots.${b.skills ? ` Easier: run it inside ${esc(b.name)}, which can load skills itself.` : ""}`);
+  }
+  out.push(`Answer its questions. It asks before it invents anything.`);
+  if (s.handoff === "builder"){
+    if (b.skills && b.id === r.id) out.push(`The skill writes the prompt for you. Review it, then send it in the same chat. <span class="muted">${esc(b.hint)}</span>`);
+    else out.push(`The skill writes a prompt. Copy that prompt into <b>${esc(b.name)}</b>. <span class="muted">${esc(b.hint)}</span>`);
+  } else if (s.handoff === "design"){
+    out.push(`The skill writes a prompt. Copy it into your design tool (for example Figma Make or Stitch) and attach your sketch or wireframe.`);
+  } else if (s.handoff === "image"){
+    out.push(`The skill writes image prompts. Copy one into your image tool, then bring the result back for a review.`);
+  }
+  out.push(`Do the checks under <b>Your judgment</b> at the end of the answer. Then add the prompt to <code>PROMPTS.md</code>${s.phase === "build" ? " and save a checkpoint" : ""}.`);
+  return out;
+}
+function renderBuilder(){
+  const s = S[$("#b-want").value];
+  const text = fillPrompt(s, $("#b-product").value.trim(), $("#b-users").value.trim());
+  $("#b-out").textContent = text;
+  $("#b-tags").innerHTML = `<span class="tag">${s.id}</span>${tagsFor(s)}`;
+  $("#b-io").innerHTML = `<dl class="io" style="grid-template-columns:1fr;padding-top:12px;border-top:1px solid var(--line)"><div><dt>Have this ready</dt><dd>${esc(s.needs)}</dd></div><div><dt>You will get</dt><dd>${esc(s.gives)}</dd></div></dl>`;
+  const usesBuilder = s.handoff === "builder" || s.prompt.includes("{builder}");
+  $("#b-how-h").textContent = `How to run it in ${rShort()}` + (usesBuilder ? `, building with ${B[st.builder].name}` : "");
+  $("#b-steps").innerHTML = runSteps(s).map(x => `<li><div>${x}</div></li>`).join("");
+  $("#b-next-panel").hidden = !s.next.length;
+  $("#b-next").innerHTML = s.next.map(n => `<button class="chip" type="button" data-build="${n}" title="${esc(S[n].sum)}">${n}</button>`).join("");
+  wire($("#b-next"));
+}
+$("#b-copy").onclick = e => copyText($("#b-out").textContent, e.currentTarget);
+function openBuilder(id){
+  $("#b-want").value = id; renderBuilder();
+  if (location.hash !== "#builder") location.hash = "builder"; else window.scrollTo(0, 0);
+}
+
+/* ---- install ---- */
+function winPath(p){ return p.replace(/^~\//, "$HOME\\").replaceAll("/", "\\"); }
+function renderInstall(){
+  const r = R[st.runner];
+  $("#i-lede").textContent = r.kind === "paste" ? `You chose ${r.name}. Chat tools cannot load skill folders, so there is nothing to install. You paste a skill into the chat when you need it.`
+    : `Steps for ${r.name}, the tool you chose under My setup. Change it at the top to see another tool.`;
+  let h = "";
+  if (r.kind === "agent"){
+    const dest = st.scope === "project" ? r.project : r.home;
+    const mac = st.scope === "project"
+      ? `mkdir -p ${dest} && cp -R ~/Downloads/uxd-ai-toolkit/skills/* ${dest}`
+      : `mkdir -p ${dest} && cp -R ~/Downloads/uxd-ai-toolkit/skills/* ${dest}`;
+    const wd = winPath(dest);
+    const win = `New-Item -ItemType Directory -Force "${wd}" | Out-Null\nCopy-Item -Recurse -Force "$HOME\\Downloads\\uxd-ai-toolkit\\skills\\*" "${wd}"`;
+    const cmd = st.os === "win" ? win : mac;
+    const ask = `Copy every folder from ~/Downloads/uxd-ai-toolkit/skills/ into ${dest}${st.scope === "project" ? " in this project" : ""}. Create the folder if it does not exist. Do not change the files. Then list the skills you can see.`;
+    h = `<div class="row" style="justify-content:space-between;margin-bottom:14px"><h3>${esc(r.name)}</h3>
+      <div class="toggle" role="group" aria-label="Where to install"><button type="button" data-scope="project" aria-pressed="${st.scope === "project"}">This project only</button><button type="button" data-scope="home" aria-pressed="${st.scope === "home"}">All my projects</button></div></div>
+    <ol class="steps">
+      <li><div><b>Download the toolkit.</b> Get <code>uxd-ai-toolkit.zip</code> from the course page on Moodle and unzip it. The steps below assume it is in your Downloads folder.</div></li>
+      <li><div><b>Copy the skills.</b> Copy every folder inside <code>uxd-ai-toolkit/skills/</code> into <code>${dest}</code>${st.scope === "project" ? " in your project folder" : " in your home folder"}. Create the folder if it is not there. Three ways to do it:
+        <p style="margin-top:8px"><b>A. Ask the agent.</b> Open ${st.scope === "project" ? "your project" : "any folder"} in ${esc(r.name)} and send this:</p>
+        <div class="cmd"><pre>${esc(ask)}</pre><button class="btn" type="button" data-copytext="${esc(ask)}">Copy</button></div>
+        <p style="margin-top:10px"><b>B. In the terminal</b>${st.scope === "project" ? ", from inside your project folder" : ""}:</p>
+        <div class="row" style="margin-top:6px"><div class="toggle" role="group" aria-label="Operating system"><button type="button" data-os="mac" aria-pressed="${st.os === "mac"}">macOS / Linux</button><button type="button" data-os="win" aria-pressed="${st.os === "win"}">Windows PowerShell</button></div></div>
+        <div class="cmd"><pre>${esc(cmd)}</pre><button class="btn" type="button" data-copytext="${esc(cmd)}">Copy</button></div>
+        <p style="margin-top:10px"><b>C. By hand</b> in Finder or Explorer. Folders that start with a dot are hidden: show them with Cmd + Shift + . on macOS, or View, Show, Hidden items on Windows.</p></div></li>
+      <li><div><b>Check the result.</b> It should look like this:
+<pre class="tree">${dest}
+├── interview-guide/
+│   ├── SKILL.md
+│   └── references/
+├── persona-builder/
+├── kickoff-prompt/
+└── ... (${DATA.skills.length} folders)</pre></div></li>
+      <li><div><b>Restart.</b> Close and reopen ${esc(r.name)}, or start a new chat.</div></li>
+      <li><div><b>Test it.</b> ${esc(r.verify)} Then try: <code>Use the ux-process-guide skill. I am starting a new project. What should I do first?</code></div></li>
+    </ol>${r.note ? `<p class="muted" style="margin-top:12px;font-size:13px">${esc(r.note)}</p>` : ""}`;
+  } else if (r.kind === "app"){
+    h = `<h3 style="margin-bottom:14px">Claude app (desktop and web)</h3>
+    <ol class="steps">
+      <li><div><b>Get the plugin file.</b> Download <code>uxd-ai-toolkit.plugin</code> from the course page on Moodle.</div></li>
+      <li><div><b>Open it in the Claude desktop app</b> and accept it. The skills are then available in every chat.</div></li>
+      <li><div><b>Test it.</b> ${esc(r.verify)}</div></li>
+      <li><div><b>Working on a project?</b> Connect its folder to the chat so Claude can read your PRD and code.</div></li>
+    </ol>
+    <div class="note" style="margin-top:14px">No plugin file yet, or you use Claude on the web only? Use the paste-me files: open <code>paste-me/&lt;skill&gt;.md</code>, copy all of it into a new chat, then send your prompt.</div>`;
+  } else {
+    h = `<h3 style="margin-bottom:14px">Chat tools: ChatGPT, Gemini and others</h3>
+    <ol class="steps">
+      <li><div><b>Download the toolkit.</b> Get <code>uxd-ai-toolkit.zip</code> from the course page on Moodle and unzip it.</div></li>
+      <li><div><b>Open the <code>paste-me</code> folder.</b> It has one file per skill, for example <code>paste-me/interview-guide.md</code>.</div></li>
+      <li><div><b>When you need a skill,</b> open its file, copy everything, paste it into a <b>new</b> chat and send it. Then send your prompt from the <a href="#builder">prompt builder</a>.</div></li>
+      <li><div><b>One skill per chat.</b> Start a new chat for the next skill and bring the result of the last one with you.</div></li>
+    </ol>
+    <div class="note" style="margin-top:14px">Lovable, Replit and DeepSite build apps but do not load skills. Run the skill in a chat tool or a coding agent, then paste the prompt it writes into your builder.</div>`;
+  }
+  $("#i-steps").innerHTML = h;
+  $("#i-steps").querySelectorAll("[data-scope]").forEach(b => b.onclick = () => { st.scope = b.dataset.scope; renderInstall(); });
+  $("#i-steps").querySelectorAll("[data-os]").forEach(b => b.onclick = () => { st.os = b.dataset.os; renderInstall(); });
+  $("#i-steps").querySelectorAll("[data-copytext]").forEach(b => b.onclick = () => copyText(b.dataset.copytext, b));
+  const t = [
+    `Check the path: <code>SKILL.md</code> must sit directly inside the skill's folder, for example <code>${r.project || ".agents/skills/"}interview-guide/SKILL.md</code>. A common mistake is an extra level such as <code>skills/skills/</code>.`,
+    `Keep the folder names as they are. The folder name must match the skill name.`,
+    `Restart the tool or start a new chat. Skills are read when a session starts.`,
+    `Name the skill in your prompt: "Use the interview-guide skill". Agents choose skills by their description and sometimes miss one.`,
+    `Still nothing? Use the file in <code>paste-me/</code> for now. It gives the same result.`
+  ];
+  $("#i-trouble").innerHTML = t.map(x => `<li>${x}</li>`).join("");
+  $("#i-table").innerHTML = DATA.runners.map(x => `<tr class="${x.id === st.runner ? "me" : ""}"><td>${esc(x.name)}</td><td>${x.project ? `<code>${x.project}</code>` : x.kind === "app" ? "Plugin file" : "Nothing to install"}</td><td>${x.home ? `<code>${x.home}</code>` : x.kind === "app" ? "Plugin file" : "Use <code>paste-me/</code>"}</td><td>${esc(x.invoke)}</td></tr>`).join("");
+}
+
+/* ---- all skills ---- */
+$("#f-phase").innerHTML = `<option value="">All phases</option><option value="any">Any time</option>` + DATA.phases.map(p => `<option value="${p.id}">${p.n} ${esc(p.name)}</option>`).join("");
+$("#q").oninput = renderList; $("#f-phase").onchange = renderList;
+function renderList(){
+  const q = $("#q").value.trim().toLowerCase(), f = $("#f-phase").value;
+  const res = DATA.skills.filter(s => (!f || s.phase === f || s.also === f) && (!q || (s.id + " " + s.sum + " " + s.want + " " + s.needs + " " + s.gives + " " + s.desc).toLowerCase().includes(q)));
+  $("#count").textContent = `${res.length} of ${DATA.skills.length}`;
+  $("#list").innerHTML = res.length ? res.map(skillCard).join("") : `<div class="panel empty">No skill matches. Try a broader word or clear the phase filter.</div>`;
+  wire($("#list"));
+}
+
+/* ---- paths ---- */
+$("#paths").innerHTML = DATA.paths.map(p => `<div class="path"><b>${esc(p.name)}</b><div class="chips">${p.steps.map((id, i) => `${i ? '<span class="arrow" aria-hidden="true">&rarr;</span>' : ""}<button class="chip" type="button" data-build="${id}" title="${esc(S[id].sum)}">${id}</button>`).join("")}</div></div>`).join("");
+wire($("#paths"));
+
+/* ---- routing ---- */
+const VIEWS = ["process","builder","install","skills","start"];
+function route(){
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "process";
+  VIEWS.forEach(x => $("#v-" + x).hidden = x !== v);
+  $("#tabs").querySelectorAll("a").forEach(a => a.getAttribute("href") === "#" + v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+function renderAll(){ renderProcess(); renderBuilder(); renderInstall(); renderList(); }
+$("#b-want").value = "kickoff-prompt"; $("#b-product").value = "the THI GreenAI Portal"; $("#b-users").value = "THI students from all faculties";
+renderAll(); route();
+</script>
+</body></html>

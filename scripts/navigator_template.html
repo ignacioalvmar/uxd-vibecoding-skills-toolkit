@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="author" content="Prof. Dr. Ignacio Alvarez"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UXD AI Toolkit Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;600&display=swap">
+<style>
+/* Look: THI navy header band with a lime rule, square corners, underline tabs, sans throughout. Layout: a sticky "my setup" bar (two tool pickers) drives every prompt and install step on the page; below it one reading column with five views */
+:root{
+  --paper:#f0f1f3; --surface:#ffffff; --ink:#1d2430; --muted:#555f6d; --line:#cfd4da;
+  --band:#102a63; --band-ink:#ffffff; --band-muted:#cdd6ec; --lime:#96be00;
+  --accent:#102a63; --accent-soft:#e3e9f6; --go:#00765a; --go-soft:#dcf2ea;
+  --you:#566f00; --you-soft:#eef4d4; --chip:#e9ebee;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"Source Code Pro",Consolas,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1418; --surface:#171e24; --ink:#e6ebee; --muted:#9aa7b2; --line:#2a343d;
+  --band:#0c1f4b; --band-ink:#ffffff; --band-muted:#b9c5e2; --lime:#a9d400;
+  --accent:#a3b9ff; --accent-soft:#1c2a4d; --go:#56d3a8; --go-soft:#12352b;
+  --you:#c5e052; --you-soft:#2b3413; --chip:#212a32; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1418; --surface:#171e24; --ink:#e6ebee; --muted:#9aa7b2; --line:#2a343d;
+  --band:#0c1f4b; --band-ink:#ffffff; --band-muted:#b9c5e2; --lime:#a9d400;
+  --accent:#a3b9ff; --accent-soft:#1c2a4d; --go:#56d3a8; --go-soft:#12352b;
+  --you:#c5e052; --you-soft:#2b3413; --chip:#212a32; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:150px}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);margin:0}
+.wrap{max-width:1060px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+header.top{padding-block:24px 22px;background:var(--band);color:var(--band-ink);border-bottom:5px solid var(--lime)}
+header.top .lede{color:var(--band-muted)}
+header.top .kicker{font:600 15px/1.3 var(--body);color:var(--band-muted)}
+header.top .ver{font-size:13.5px;color:var(--band-muted);margin-top:10px}
+.eyebrow{font:700 14px/1.3 var(--body);color:var(--go)}
+h1{font:700 clamp(30px,4.6vw,44px)/1.05 var(--display);margin:4px 0 10px;text-wrap:balance}
+h2{font:700 25px/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+h3{font:700 16px/1.3 var(--body);margin:0}
+p{margin:0}
+.lede{color:var(--muted);max-width:66ch}
+.muted{color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:13px}
+code{background:var(--chip);padding:1px 5px;border-radius:2px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+/* sticky setup + tabs */
+.bar{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.setup{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-block:10px 6px}
+.setup .lbl{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+.setup label{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;min-width:0}
+select,input[type=text],input[type=search]{padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:var(--surface);color:var(--ink);font:inherit;max-width:100%;min-width:0}
+.setup select{border:2px solid var(--accent);font-weight:700;color:var(--accent)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;padding-top:2px}
+nav.tabs a{flex:none;padding:9px 14px 8px;border-bottom:3px solid transparent;color:var(--muted);text-decoration:none;font-weight:600;font-size:15.5px}
+nav.tabs a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs a:hover:not([aria-current]){color:var(--ink);border-bottom-color:var(--line)}
+main{padding-block:22px 64px}
+section.view{display:grid;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px 20px;min-width:0}
+/* process rail */
+.rail{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:16px}
+.station{appearance:none;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0 8px 0 0;min-width:0}
+.station .dot{display:flex;align-items:center}
+.station .num{width:34px;height:34px;border-radius:3px;display:grid;place-items:center;font:700 17px var(--display);background:var(--surface);border:2px solid var(--line);color:var(--muted);flex:none}
+.station .line{height:2px;background:var(--line);flex:1}
+.station:last-child .line{visibility:hidden}
+.station .nm{display:block;margin-top:8px;font:700 18px/1.2 var(--display)}
+.station .wh{display:block;font-size:13.5px;line-height:1.35;color:var(--muted);margin-top:2px}
+.station[aria-pressed="true"] .num{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.station:hover .num{border-color:var(--accent)}
+@media (max-width:780px){.rail{grid-template-columns:1fr;gap:10px}.station{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}.station .line{display:none}.station .nm{margin-top:0}}
+.lost{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
+.phase-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:780px){.phase-head{grid-template-columns:1fr}}
+.you{border-left:3px solid var(--you);background:var(--you-soft);padding:10px 14px;border-radius:0;font-size:14px}
+.you b{display:block;font:700 12.5px/1.3 var(--body);color:var(--you);margin-bottom:2px}
+.cards{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:3px;padding:14px 16px;display:grid;gap:10px;min-width:0}
+.card-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
+.sk-id{font:700 21px/1.15 var(--display);color:var(--accent);overflow-wrap:anywhere}
+.io{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 16px;margin:0;font-size:13.5px}
+.io dt{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+.io dd{margin:0}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font:600 12px var(--body);padding:2px 7px;border-radius:2px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.tag.ph{background:var(--accent-soft);color:var(--accent)}
+.tag.proj{background:var(--go-soft);color:var(--go)}
+.prompt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;background:var(--paper);border:0;border-left:4px solid var(--go);border-radius:0;padding:10px 12px}
+.prompt p{font-size:15px;overflow-wrap:anywhere;white-space:pre-wrap}
+.btn{appearance:none;border:1px solid var(--muted);background:var(--surface);color:var(--ink);border-radius:3px;padding:6px 12px;font:600 14px var(--body);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--go);border-color:var(--go);color:var(--surface)}
+.btn.primary:hover{color:var(--surface);filter:brightness(1.12)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{appearance:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:3px;padding:3px 8px;font:12.5px var(--mono);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.arrow{color:var(--muted);font-family:var(--mono)}
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+@media (max-width:860px){.builder{grid-template-columns:1fr}}
+.form{display:grid;gap:12px}
+.field{display:grid;gap:4px}
+.field label{font-size:13px;font-weight:600}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.out{display:grid;gap:14px}
+pre.box{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:13.5px/1.6 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:14px}
+.steps{display:grid;gap:10px;counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;counter-increment:s;font-size:14px}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:3px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 14px var(--display)}
+.steps li>div{min-width:0}
+.note{border-left:3px solid var(--go);background:var(--go-soft);padding:10px 14px;border-radius:0;font-size:14px}
+/* install */
+.toggle{display:flex;gap:4px;flex-wrap:wrap}
+.toggle button{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:3px;padding:5px 12px;font:13px var(--body);cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tree{font:12.5px/1.6 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:12px;margin:8px 0 0;overflow-x:auto;white-space:pre}
+.cmd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;margin-top:8px}
+.cmd pre{margin:0;font:12.5px/1.55 var(--mono);background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font:700 12.5px/1.3 var(--body);color:var(--muted)}
+tr.me td{background:var(--accent-soft)}
+td:first-child{font-weight:600;white-space:nowrap}
+/* skills list */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.filters input[type=search]{flex:1 1 240px}
+.count{font:14px var(--body);color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+ul.plain{margin:0;padding-left:18px;display:grid;gap:6px}
+.path{display:grid;gap:6px;padding-block:10px;border-top:1px solid var(--line)}
+.path:first-of-type{border-top:0}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.chip,.btn,.station .num,.card{transition:border-color .15s,background .15s,color .15s}}
+</style></head><body>
+
+<header class="top"><div class="wrap">
+  <div class="kicker">Vibecoding for UX Designers, Technische Hochschule Ingolstadt</div>
+  <h1>UXD AI Toolkit Navigator</h1>
+  <p class="lede">Pick the tools you work with once. Then find the skill for where you are in your project, get the prompt written for your tools, and see how to install the skills. You stay the designer: every skill ends with what you must check or decide yourself.</p>
+  <p class="ver"><b>Prof. Dr. Ignacio Alvarez</b>, Human-Centered Intelligent Systems Lab<br>Toolkit version __VERSION__, __COUNT__ skills</p>
+</div></header>
+
+<div class="bar"><div class="wrap">
+  <div class="setup" role="group" aria-label="My setup">
+    <span class="lbl">My setup</span>
+    <label for="set-runner">I talk to AI in <select id="set-runner"></select></label>
+    <label for="set-builder">I build with <select id="set-builder"></select></label>
+  </div>
+  <nav class="tabs" aria-label="Sections" id="tabs">
+    <a href="#process">Process</a><a href="#builder">Prompt builder</a><a href="#install">Install</a><a href="#skills">All skills</a><a href="#start">Getting started</a>
+  </nav>
+</div></div>
+
+<main><div class="wrap">
+
+<section class="view" id="v-process" aria-labelledby="h-proc">
+  <div class="panel">
+    <h2 id="h-proc">Where are you in your project?</h2>
+    <p class="muted">Six phases. You can enter anywhere and go back any time: with AI, design moves in short loops between exploring, building and testing.</p>
+    <div class="rail" id="rail" role="group" aria-label="Phases"></div>
+    <div class="lost"><span>Not sure where you are?</span><button class="btn" type="button" id="lost-btn">Ask ux-process-guide</button></div>
+  </div>
+  <div class="panel" id="phase-head"></div>
+  <div class="cards" id="phase-cards"></div>
+</section>
+
+<section class="view" id="v-builder" hidden aria-labelledby="h-b">
+  <div class="panel">
+    <h2 id="h-b">Prompt builder</h2>
+    <p class="muted">Choose what you want to do and fill in what you know. The prompt and the steps follow the tools you picked under My setup.</p>
+  </div>
+  <div class="builder">
+    <div class="panel form">
+      <div class="field"><label for="b-want">What do you want to do?</label><select id="b-want"></select></div>
+      <div class="field"><label for="b-product">Your project</label><input type="text" id="b-product" placeholder="e.g. the THI GreenAI Portal"><span class="hint">Name it, or describe it in a few words.</span></div>
+      <div class="field"><label for="b-users">Your users</label><input type="text" id="b-users" placeholder="e.g. THI students from all faculties"></div>
+      <div id="b-io"></div>
+    </div>
+    <div class="out">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Your prompt</h3><span class="tags" id="b-tags"></span></div>
+        <pre class="box" id="b-out"></pre>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="b-copy" type="button">Copy prompt</button><span class="muted" style="font-size:13px">Replace everything in &lt;angle brackets&gt; with your own content.</span></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:10px" id="b-how-h">How to run it</h3>
+        <ol class="steps" id="b-steps"></ol>
+      </div>
+      <div class="panel" id="b-next-panel">
+        <h3 style="margin-bottom:8px">What usually comes next</h3>
+        <div class="chips" id="b-next"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-install" hidden aria-labelledby="h-i">
+  <div class="panel">
+    <h2 id="h-i">Install the skills</h2>
+    <p class="muted" id="i-lede"></p>
+  </div>
+  <div class="panel" id="i-steps"></div>
+  <div class="panel">
+    <h3 style="margin-bottom:8px">If a skill does not show up</h3>
+    <ul class="plain" id="i-trouble"></ul>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:8px">All tools at a glance</h3>
+    <div class="tablewrap"><table><thead><tr><th>Tool</th><th>One project</th><th>All your projects</th><th>How to call a skill</th></tr></thead><tbody id="i-table"></tbody></table></div>
+    <p class="muted" style="margin-top:10px;font-size:13px">Folder locations were checked against each tool's documentation in November 2026. These tools change often. If something does not match, look at the tool's current skills documentation.</p>
+  </div>
+</section>
+
+<section class="view" id="v-skills" hidden aria-labelledby="h-s">
+  <div class="panel">
+    <h2 id="h-s">All __COUNT__ skills</h2>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search: persona, wireframe, error, PRD, git ..." aria-label="Search skills">
+      <select id="f-phase" aria-label="Phase"></select>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+  </div>
+  <div class="cards" id="list"></div>
+</section>
+
+<section class="view" id="v-start" hidden aria-labelledby="h-g">
+  <div class="panel">
+    <h2 id="h-g">Getting started</h2>
+    <ol class="steps" style="margin-top:10px">
+      <li><div><b>Pick your tools.</b> Set them once under My setup at the top. Every prompt and install step on this page adapts.</div></li>
+      <li><div><b>Install the skills.</b> Follow <a href="#install">Install</a>. It takes about two minutes. In chat-only tools there is nothing to install.</div></li>
+      <li><div><b>Say where you are.</b> Open <a href="#process">Process</a>, pick your phase and copy a prompt. If unsure, ask <code>ux-process-guide</code>.</div></li>
+      <li><div><b>Answer the skill's questions.</b> A skill asks for what it needs. It will not invent users, quotes or requirements, so have your material ready.</div></li>
+      <li><div><b>Do your part.</b> Every skill ends with a block called Your judgment. Those checks are the design work.</div></li>
+      <li><div><b>Save as you go.</b> Keep outputs as files in your project and commit after each working step.</div></li>
+    </ol>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3 style="margin-bottom:4px">What a skill is</h3>
+      <p style="font-size:14px">A folder with a file called <code>SKILL.md</code>: plain-text instructions that an AI agent loads when your request matches. Open one and read it. That is part of the learning, and you can change it or write your own.</p>
+<pre class="tree">your-project/
+├── .agents/skills/      the toolkit skills
+├── PRD.md               what you are building
+├── DESIGN.md            how it looks and feels
+├── AGENTS.md            how the agent should work
+├── PROMPTS.md           your prompt log
+└── research/            notes, themes, personas</pre>
+    </div>
+    <div class="panel">
+      <h3 style="margin-bottom:8px">Ground rules</h3>
+      <ul class="plain" style="font-size:14px">
+        <li>AI is the pattern-finder. You are the meaning-maker.</li>
+        <li>Skills never invent users, quotes, data or requirements. They ask, or mark an assumption.</li>
+        <li>Your own ideas and sketches come first. AI adds breadth and speed afterwards.</li>
+        <li>Anonymize research data before you paste it. Get consent before recording or using AI in a session.</li>
+        <li>Synthetic users are for rehearsal. They are never evidence.</li>
+        <li>One step at a time, with a saved checkpoint after each.</li>
+        <li>"Done!" from an AI is a claim. The check decides.</li>
+        <li>Log your prompts in <code>PROMPTS.md</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:4px">Typical paths</h3>
+    <p class="muted" style="font-size:13.5px">Select a skill to open it in the prompt builder.</p>
+    <div id="paths"></div>
+  </div>
+</section>
+
+</div></main>
+
+<script>
+const DATA = __DATA__;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = Object.fromEntries(DATA.skills.map(s => [s.id, s]));
+const P = Object.fromEntries(DATA.phases.map(p => [p.id, p]));
+const R = Object.fromEntries(DATA.runners.map(r => [r.id, r]));
+const B = Object.fromEntries(DATA.builders.map(b => [b.id, b]));
+const phaseName = id => id === "any" ? "Any time" : P[id].name;
+
+/* ---- state (remembered per browser when storage is available) ---- */
+const store = {
+  get(k, d){ try { return localStorage.getItem("uxd-" + k) || d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem("uxd-" + k, v); } catch(e){} }
+};
+const st = { runner: store.get("runner", "cursor"), builder: store.get("builder", "lovable"), phase: "research", scope: "project", os: /Win/i.test(navigator.platform || "") ? "win" : "mac" };
+if (!R[st.runner]) st.runner = "cursor";
+if (!B[st.builder]) st.builder = "lovable";
+const rShort = () => R[st.runner].short || R[st.runner].name;
+
+$("#set-runner").innerHTML = DATA.runners.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join("");
+$("#set-builder").innerHTML = DATA.builders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("");
+$("#set-runner").value = st.runner; $("#set-builder").value = st.builder;
+$("#set-runner").onchange = e => { st.runner = e.target.value; store.set("runner", st.runner); renderAll(); };
+$("#set-builder").onchange = e => { st.builder = e.target.value; store.set("builder", st.builder); renderAll(); };
+
+/* ---- prompt text ---- */
+function fillPrompt(s, product, users){
+  const p = product || "<your project>", u = users || "<your users>";
+  let t = s.prompt.replaceAll("{product}", p).replaceAll("{users}", u)
+    .replaceAll("{usersp}", users ? ` for ${users}` : "").replaceAll("{builder}", B[st.builder].name);
+  return R[st.runner].kind === "paste" ? t : `Use the ${s.id} skill.\n\n${t}`;
+}
+async function copyText(text, btn){
+  const done = msg => { const o = btn.dataset.label || btn.textContent; btn.dataset.label = o; btn.textContent = msg; setTimeout(() => btn.textContent = o, 1600); };
+  try { await navigator.clipboard.writeText(text); done("Copied"); }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch(_){}
+    ta.remove(); done(ok ? "Copied" : "Select the text and copy it");
+  }
+}
+function tagsFor(s){
+  const t = [`<span class="tag ph">${phaseName(s.phase)}</span>`];
+  if (s.also) t.push(`<span class="tag ph">${phaseName(s.also)}</span>`);
+  if (s.where === "project") t.push(`<span class="tag proj" title="Works best where the AI can see your project files">needs your project</span>`);
+  return t.join("");
+}
+function skillCard(s){
+  const text = fillPrompt(s);
+  return `<article class="card" id="sk-${s.id}">
+    <div class="card-top"><span class="sk-id">${s.id}</span><span class="tags">${tagsFor(s)}</span></div>
+    <p>${esc(s.sum)}</p>
+    <dl class="io"><div><dt>You bring</dt><dd>${esc(s.needs)}</dd></div><div><dt>You get</dt><dd>${esc(s.gives)}</dd></div></dl>
+    <div class="prompt"><p>${esc(text)}</p><button class="btn" type="button" data-copy="${s.id}">Copy</button></div>
+    <div class="row"><button class="btn primary" type="button" data-build="${s.id}">Fill in and see the steps</button>
+    ${s.next.length ? `<span class="muted" style="font-size:13px">Then:</span><span class="chips">${s.next.map(n => `<button class="chip" type="button" data-build="${n}">${n}</button>`).join("")}</span>` : ""}</div>
+  </article>`;
+}
+function wire(root){
+  root.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(fillPrompt(S[b.dataset.copy]), b));
+  root.querySelectorAll("[data-build]").forEach(b => b.onclick = () => openBuilder(b.dataset.build));
+}
+
+/* ---- process ---- */
+function renderProcess(){
+  $("#rail").innerHTML = DATA.phases.map(p => `<button class="station" type="button" data-p="${p.id}" aria-pressed="${p.id === st.phase}">
+    <span class="dot"><span class="num">${p.n}</span><span class="line"></span></span>
+    <span><span class="nm">${esc(p.name)}</span><span class="wh">${esc(p.when)}</span></span></button>`).join("");
+  $("#rail").querySelectorAll(".station").forEach(b => b.onclick = () => { st.phase = b.dataset.p; renderProcess(); });
+  const p = P[st.phase];
+  const sk = DATA.skills.filter(s => s.phase === st.phase || s.also === st.phase);
+  $("#phase-head").innerHTML = `<div class="phase-head">
+    <div><div class="eyebrow">Phase ${p.n} of 6, ${sk.length} skill${sk.length === 1 ? "" : "s"}</div><h2 style="margin-top:6px">${esc(p.name)}</h2><p>${esc(p.what)}</p></div>
+    <div class="you"><b>Your part</b>${esc(p.you)}</div></div>`;
+  $("#phase-cards").innerHTML = sk.map(skillCard).join("");
+  wire($("#phase-cards"));
+}
+$("#lost-btn").onclick = () => openBuilder("ux-process-guide");
+
+/* ---- builder ---- */
+$("#b-want").innerHTML = [{id:"any",name:"Any time"}, ...DATA.phases].map(p => {
+  const sk = DATA.skills.filter(s => s.phase === p.id);
+  return `<optgroup label="${esc(p.name)}">${sk.map(s => `<option value="${s.id}">${esc(s.want)}</option>`).join("")}</optgroup>`;
+}).join("");
+["#b-want","#b-product","#b-users"].forEach(id => $(id).addEventListener("input", renderBuilder));
+function runSteps(s){
+  const r = R[st.runner], b = B[st.builder], out = [];
+  const inst = `<a href="#install">Install</a>`;
+  if (r.kind === "paste"){
+    out.push(`Open <code>paste-me/${s.id}.md</code> in the toolkit folder. Copy all of it into a new chat in ${esc(rShort())} and send it.`);
+    out.push(`Then send the prompt above. Attach the files or screenshots it mentions.`);
+  } else if (r.kind === "app"){
+    out.push(`Open a new chat in the Claude app. The toolkit must be installed once (see ${inst}).${s.where === "project" ? " Connect your project folder to the chat so Claude can read your files." : ""}`);
+    out.push(`Paste the prompt and send it. ${esc(r.invoke)}`);
+  } else {
+    out.push(`Open your project folder in ${esc(r.name)}. The skills must be in <code>${r.project}</code> (see ${inst}).`);
+    out.push(`Paste the prompt into the agent chat. Shortcut: <code>${esc(r.slash.replace("{id}", s.id))}</code>`);
+  }
+  if (s.where === "project" && r.kind !== "agent"){
+    out.push(`This skill works best where the AI can see your project. In a chat, paste the relevant files, the full error text or screenshots.${b.skills ? ` Easier: run it inside ${esc(b.name)}, which can load skills itself.` : ""}`);
+  }
+  out.push(`Answer its questions. It asks before it invents anything.`);
+  if (s.handoff === "builder"){
+    if (b.skills && b.id === r.id) out.push(`The skill writes the prompt for you. Review it, then send it in the same chat. <span class="muted">${esc(b.hint)}</span>`);
+    else out.push(`The skill writes a prompt. Copy that prompt into <b>${esc(b.name)}</b>. <span class="muted">${esc(b.hint)}</span>`);
+  } else if (s.handoff === "design"){
+    out.push(`The skill writes a prompt. Copy it into your design tool (for example Figma Make or Stitch) and attach your sketch or wireframe.`);
+  } else if (s.handoff === "image"){
+    out.push(`The skill writes image prompts. Copy one into your image tool, then bring the result back for a review.`);
+  }
+  out.push(`Do the checks under <b>Your judgment</b> at the end of the answer. Then add the prompt to <code>PROMPTS.md</code>${s.phase === "build" ? " and save a checkpoint" : ""}.`);
+  return out;
+}
+function renderBuilder(){
+  const s = S[$("#b-want").value];
+  const text = fillPrompt(s, $("#b-product").value.trim(), $("#b-users").value.trim());
+  $("#b-out").textContent = text;
+  $("#b-tags").innerHTML = `<span class="tag">${s.id}</span>${tagsFor(s)}`;
+  $("#b-io").innerHTML = `<dl class="io" style="grid-template-columns:1fr;padding-top:12px;border-top:1px solid var(--line)"><div><dt>Have this ready</dt><dd>${esc(s.needs)}</dd></div><div><dt>You will get</dt><dd>${esc(s.gives)}</dd></div></dl>`;
+  const usesBuilder = s.handoff === "builder" || s.prompt.includes("{builder}");
+  $("#b-how-h").textContent = `How to run it in ${rShort()}` + (usesBuilder ? `, building with ${B[st.builder].name}` : "");
+  $("#b-steps").innerHTML = runSteps(s).map(x => `<li><div>${x}</div></li>`).join("");
+  $("#b-next-panel").hidden = !s.next.length;
+  $("#b-next").innerHTML = s.next.map(n => `<button class="chip" type="button" data-build="${n}" title="${esc(S[n].sum)}">${n}</button>`).join("");
+  wire($("#b-next"));
+}
+$("#b-copy").onclick = e => copyText($("#b-out").textContent, e.currentTarget);
+function openBuilder(id){
+  $("#b-want").value = id; renderBuilder();
+  if (location.hash !== "#builder") location.hash = "builder"; else window.scrollTo(0, 0);
+}
+
+/* ---- install ---- */
+function winPath(p){ return p.replace(/^~\//, "$HOME\\").replaceAll("/", "\\"); }
+function renderInstall(){
+  const r = R[st.runner];
+  $("#i-lede").textContent = r.kind === "paste" ? `You chose ${r.name}. Chat tools cannot load skill folders, so there is nothing to install. You paste a skill into the chat when you need it.`
+    : `Steps for ${r.name}, the tool you chose under My setup. Change it at the top to see another tool.`;
+  let h = "";
+  if (r.kind === "agent"){
+    const dest = st.scope === "project" ? r.project : r.home;
+    const mac = st.scope === "project"
+      ? `mkdir -p ${dest} && cp -R ~/Downloads/uxd-ai-toolkit/skills/* ${dest}`
+      : `mkdir -p ${dest} && cp -R ~/Downloads/uxd-ai-toolkit/skills/* ${dest}`;
+    const wd = winPath(dest);
+    const win = `New-Item -ItemType Directory -Force "${wd}" | Out-Null\nCopy-Item -Recurse -Force "$HOME\\Downloads\\uxd-ai-toolkit\\skills\\*" "${wd}"`;
+    const cmd = st.os === "win" ? win : mac;
+    const ask = `Copy every folder from ~/Downloads/uxd-ai-toolkit/skills/ into ${dest}${st.scope === "project" ? " in this project" : ""}. Create the folder if it does not exist. Do not change the files. Then list the skills you can see.`;
+    h = `<div class="row" style="justify-content:space-between;margin-bottom:14px"><h3>${esc(r.name)}</h3>
+      <div class="toggle" role="group" aria-label="Where to install"><button type="button" data-scope="project" aria-pressed="${st.scope === "project"}">This project only</button><button type="button" data-scope="home" aria-pressed="${st.scope === "home"}">All my projects</button></div></div>
+    <ol class="steps">
+      <li><div><b>Download the toolkit.</b> Get <code>uxd-ai-toolkit.zip</code> from the course page on Moodle and unzip it. The steps below assume it is in your Downloads folder.</div></li>
+      <li><div><b>Copy the skills.</b> Copy every folder inside <code>uxd-ai-toolkit/skills/</code> into <code>${dest}</code>${st.scope === "project" ? " in your project folder" : " in your home folder"}. Create the folder if it is not there. Three ways to do it:
+        <p style="margin-top:8px"><b>A. Ask the agent.</b> Open ${st.scope === "project" ? "your project" : "any folder"} in ${esc(r.name)} and send this:</p>
+        <div class="cmd"><pre>${esc(ask)}</pre><button class="btn" type="button" data-copytext="${esc(ask)}">Copy</button></div>
+        <p style="margin-top:10px"><b>B. In the terminal</b>${st.scope === "project" ? ", from inside your project folder" : ""}:</p>
+        <div class="row" style="margin-top:6px"><div class="toggle" role="group" aria-label="Operating system"><button type="button" data-os="mac" aria-pressed="${st.os === "mac"}">macOS / Linux</button><button type="button" data-os="win" aria-pressed="${st.os === "win"}">Windows PowerShell</button></div></div>
+        <div class="cmd"><pre>${esc(cmd)}</pre><button class="btn" type="button" data-copytext="${esc(cmd)}">Copy</button></div>
+        <p style="margin-top:10px"><b>C. By hand</b> in Finder or Explorer. Folders that start with a dot are hidden: show them with Cmd + Shift + . on macOS, or View, Show, Hidden items on Windows.</p></div></li>
+      <li><div><b>Check the result.</b> It should look like this:
+<pre class="tree">${dest}
+├── interview-guide/
+│   ├── SKILL.md
+│   └── references/
+├── persona-builder/
+├── kickoff-prompt/
+└── ... (${DATA.skills.length} folders)</pre></div></li>
+      <li><div><b>Restart.</b> Close and reopen ${esc(r.name)}, or start a new chat.</div></li>
+      <li><div><b>Test it.</b> ${esc(r.verify)} Then try: <code>Use the ux-process-guide skill. I am starting a new project. What should I do first?</code></div></li>
+    </ol>${r.note ? `<p class="muted" style="margin-top:12px;font-size:13px">${esc(r.note)}</p>` : ""}`;
+  } else if (r.kind === "app"){
+    h = `<h3 style="margin-bottom:14px">Claude app (desktop and web)</h3>
+    <ol class="steps">
+      <li><div><b>Get the plugin file.</b> Download <code>uxd-ai-toolkit.plugin</code> from the course page on Moodle.</div></li>
+      <li><div><b>Open it in the Claude desktop app</b> and accept it. The skills are then available in every chat.</div></li>
+      <li><div><b>Test it.</b> ${esc(r.verify)}</div></li>
+      <li><div><b>Working on a project?</b> Connect its folder to the chat so Claude can read your PRD and code.</div></li>
+    </ol>
+    <div class="note" style="margin-top:14px">No plugin file yet, or you use Claude on the web only? Use the paste-me files: open <code>paste-me/&lt;skill&gt;.md</code>, copy all of it into a new chat, then send your prompt.</div>`;
+  } else {
+    h = `<h3 style="margin-bottom:14px">Chat tools: ChatGPT, Gemini and others</h3>
+    <ol class="steps">
+      <li><div><b>Download the toolkit.</b> Get <code>uxd-ai-toolkit.zip</code> from the course page on Moodle and unzip it.</div></li>
+      <li><div><b>Open the <code>paste-me</code> folder.</b> It has one file per skill, for example <code>paste-me/interview-guide.md</code>.</div></li>
+      <li><div><b>When you need a skill,</b> open its file, copy everything, paste it into a <b>new</b> chat and send it. Then send your prompt from the <a href="#builder">prompt builder</a>.</div></li>
+      <li><div><b>One skill per chat.</b> Start a new chat for the next skill and bring the result of the last one with you.</div></li>
+    </ol>
+    <div class="note" style="margin-top:14px">Lovable, Replit and DeepSite build apps but do not load skills. Run the skill in a chat tool or a coding agent, then paste the prompt it writes into your builder.</div>`;
+  }
+  $("#i-steps").innerHTML = h;
+  $("#i-steps").querySelectorAll("[data-scope]").forEach(b => b.onclick = () => { st.scope = b.dataset.scope; renderInstall(); });
+  $("#i-steps").querySelectorAll("[data-os]").forEach(b => b.onclick = () => { st.os = b.dataset.os; renderInstall(); });
+  $("#i-steps").querySelectorAll("[data-copytext]").forEach(b => b.onclick = () => copyText(b.dataset.copytext, b));
+  const t = [
+    `Check the path: <code>SKILL.md</code> must sit directly inside the skill's folder, for example <code>${r.project || ".agents/skills/"}interview-guide/SKILL.md</code>. A common mistake is an extra level such as <code>skills/skills/</code>.`,
+    `Keep the folder names as they are. The folder name must match the skill name.`,
+    `Restart the tool or start a new chat. Skills are read when a session starts.`,
+    `Name the skill in your prompt: "Use the interview-guide skill". Agents choose skills by their description and sometimes miss one.`,
+    `Still nothing? Use the file in <code>paste-me/</code> for now. It gives the same result.`
+  ];
+  $("#i-trouble").innerHTML = t.map(x => `<li>${x}</li>`).join("");
+  $("#i-table").innerHTML = DATA.runners.map(x => `<tr class="${x.id === st.runner ? "me" : ""}"><td>${esc(x.name)}</td><td>${x.project ? `<code>${x.project}</code>` : x.kind === "app" ? "Plugin file" : "Nothing to install"}</td><td>${x.home ? `<code>${x.home}</code>` : x.kind === "app" ? "Plugin file" : "Use <code>paste-me/</code>"}</td><td>${esc(x.invoke)}</td></tr>`).join("");
+}
+
+/* ---- all skills ---- */
+$("#f-phase").innerHTML = `<option value="">All phases</option><option value="any">Any time</option>` + DATA.phases.map(p => `<option value="${p.id}">${p.n} ${esc(p.name)}</option>`).join("");
+$("#q").oninput = renderList; $("#f-phase").onchange = renderList;
+function renderList(){
+  const q = $("#q").value.trim().toLowerCase(), f = $("#f-phase").value;
+  const res = DATA.skills.filter(s => (!f || s.phase === f || s.also === f) && (!q || (s.id + " " + s.sum + " " + s.want + " " + s.needs + " " + s.gives + " " + s.desc).toLowerCase().includes(q)));
+  $("#count").textContent = `${res.length} of ${DATA.skills.length}`;
+  $("#list").innerHTML = res.length ? res.map(skillCard).join("") : `<div class="panel empty">No skill matches. Try a broader word or clear the phase filter.</div>`;
+  wire($("#list"));
+}
+
+/* ---- paths ---- */
+$("#paths").innerHTML = DATA.paths.map(p => `<div class="path"><b>${esc(p.name)}</b><div class="chips">${p.steps.map((id, i) => `${i ? '<span class="arrow" aria-hidden="true">&rarr;</span>' : ""}<button class="chip" type="button" data-build="${id}" title="${esc(S[id].sum)}">${id}</button>`).join("")}</div></div>`).join("");
+wire($("#paths"));
+
+/* ---- routing ---- */
+const VIEWS = ["process","builder","install","skills","start"];
+function route(){
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "process";
+  VIEWS.forEach(x => $("#v-" + x).hidden = x !== v);
+  $("#tabs").querySelectorAll("a").forEach(a => a.getAttribute("href") === "#" + v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+function renderAll(){ renderProcess(); renderBuilder(); renderInstall(); renderList(); }
+$("#b-want").value = "kickoff-prompt"; $("#b-product").value = "the THI GreenAI Portal"; $("#b-users").value = "THI students from all faculties";
+renderAll(); route();
+</script>
+</body></html>
